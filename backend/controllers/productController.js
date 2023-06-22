@@ -1,11 +1,13 @@
 const pool = require('../database');
 
+const Product = require('../models/Product');
+
 const Joi = require('joi');
 
 const getAllProducts = async (req, res) => {
   try {
-    const products = await pool.query('SELECT * FROM products');
-    res.json(products.rows);
+    const products = await Product.findAll();
+    res.json(products);
   } catch (err) {
     console.error(err.message);
   }
@@ -25,14 +27,12 @@ const getProductById = async (req, res) => {
       return res.status(400).json({ error: error.details[0].message });
     }
 
-    const product = await pool.query('SELECT * FROM products WHERE id = $1', [
-      id,
-    ]);
+    const product = await Product.findByPk(id);
 
-    if (product.rows.length === 0) {
+    if (!product) {
       return res.status(404).json({ error: 'Product not found' });
     }
-    res.json(product.rows[0]);
+    res.json(product.dataValues);
   } catch (err) {
     console.error(err.message);
   }
@@ -54,12 +54,9 @@ const createProduct = async (req, res) => {
       return res.status(400).json({ error: error.details[0].message });
     }
 
-    const newProduct = await pool.query(
-      'INSERT INTO products (name, description, price) VALUES ($1, $2, $3) RETURNING *',
-      [name, description, price]
-    );
+    const newProduct = await Product.create({ name, description, price });
 
-    res.json(newProduct.rows[0]);
+    res.json(newProduct.dataValues);
   } catch (err) {
     console.error(err.message);
   }
@@ -84,15 +81,15 @@ const updateProduct = async (req, res) => {
       return res.status(400).json({ error: error.details[0].message });
     }
 
-    const updateProduct = await pool.query(
-      'UPDATE products SET name = $1, description = $2, price = $3 WHERE id = $4 RETURNING *',
-      [name, description, price, id]
-    );
-    if (updateProduct.rows.length === 0) {
+    const product = await Product.findByPk(id);
+
+    if (!product) {
       return res.status(404).json({ error: 'Product not found' });
     }
 
-    res.json(updateProduct.rows[0]);
+    const updateProduct = await product.update({ name, description, price });
+
+    res.json(updateProduct.dataValues);
   } catch (err) {
     console.error(err.message);
   }
@@ -111,15 +108,14 @@ const deleteProduct = async (req, res) => {
     if (error) {
       return res.status(400).json({ error: error.details[0].message });
     }
-    const deleteProduct = await pool.query(
-      'DELETE FROM products WHERE id = $1 RETURNING *',
-      [id]
-    );
 
-    if (deleteProduct.rows.length === 0) {
+    const deleteProduct = await Product.destroy({ where: { id } });
+
+    if (deleteProduct !== 1) {
       return res.status(404).json({ error: 'Product not found' });
     }
-    res.json(deleteProduct.rows[0]);
+
+    res.status(200).json({ message: 'Product deleted successfully' });
   } catch (err) {
     console.error(err.message);
   }
