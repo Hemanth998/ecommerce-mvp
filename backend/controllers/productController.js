@@ -70,9 +70,9 @@ const updateProduct = async (req, res) => {
 
     const schema = Joi.object({
       id: Joi.number().integer().min(1).required(),
-      name: Joi.string().min(3).max(50).required(),
-      description: Joi.string().min(3).max(255).required(),
-      price: Joi.number().min(1).required(),
+      name: Joi.string().min(3).max(50),
+      description: Joi.string().min(3).max(255),
+      price: Joi.number().min(1),
     });
 
     const { error } = schema.validate({ id, name, description, price });
@@ -87,7 +87,9 @@ const updateProduct = async (req, res) => {
       return res.status(404).json({ error: 'Product not found' });
     }
 
-    const updateProduct = await product.update({ name, description, price });
+    const updateObject = { ...req.body };
+
+    const updateProduct = await product.update(updateObject);
 
     res.json(updateProduct.dataValues);
   } catch (err) {
