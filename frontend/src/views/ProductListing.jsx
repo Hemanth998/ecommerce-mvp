@@ -1,11 +1,7 @@
-import { Outlet } from 'react-router-dom';
-import './App.css';
+import '../css/bootstrap.min.css';
+import ProductCard from '../components/ProductCard';
 
-import NavBar from './components/NavBar';
-
-import { useContext } from 'react';
-
-function App() {
+const ProductListing = () => {
   const products = [
     {
       id: 1,
@@ -26,13 +22,14 @@ function App() {
       price: 300,
     },
   ];
-
   return (
-    <div className="App">
-      <NavBar />
-      <Outlet />
+    <div className="container mt-5">
+      <div className="row">
+        {products.map((product) => (
+          <ProductCard product={product} />
+        ))}
+      </div>
     </div>
   );
-}
-
-export default App;
+};
+export default ProductListing;
